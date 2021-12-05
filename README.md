@@ -1,2 +1,2 @@
-# Uzu
+# Buta
 tirelire intelligente
