@@ -1,4 +1,8 @@
-# Buta
+# Buta!
+Diagramme de Gantt:
+
+[image](https://user-images.githubusercontent.com/95500795/144764068-5d436dc3-150c-4466-af66-c937385c4295.png)
+
 Description du projet:
 
 Buta est une tirelire intelligente et connectée. Elle trie les pièces dans différents compartiments puis on peut lui demander une certaine somme à récupérer et elle va, en fonction des pièces présentes à l'intérieur, rendre cette somme dans un compartiment. La demande de remise se passe sur son téléphone par Bluetooth ou directement sur la machine qui sera équipée d'un écran LCD et d'une poignée de boutons poussoirs pour choisir la somme voulue.
