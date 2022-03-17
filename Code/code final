@@ -1,0 +1,397 @@
+#include <SoftwareSerial.h>
+#include <Servo.h>
+#include <LiquidCrystal.h>
+#include <Wire.h>
+#define RX 10
+#define TX 11
+
+SoftwareSerial blue(RX,TX);
+
+char data;
+
+Servo servo1;
+Servo servo2;
+Servo servo3;
+Servo servo4;
+Servo servo5;
+
+int val200;  //variable pour la detection des pieces
+int val100;
+int val50;
+int val20;
+int val10;
+
+int e200 = 1; //total de pieces presentes dans la tirelire
+int e100 = 1;
+int e50 = 1;
+int e20 = 1;
+int e10 = 1;
+
+ //total de centimes dans la tirelire
+
+bool n200 = true; //verification des pieces
+bool n100 = true;
+bool n50 = true;
+bool n20 = true;
+bool n10 = true; 
+
+int boucle = 0; 
+int preD = 0; //avant validation par l'utilisateur
+int D = 0 ; //demandé: argent demandé par l'utilisateur
+int M = 0; //manque: argent que la machine n'a pas pu rendre
+int R = 0; //rajout: argent que la machine à donné en trop
+
+
+
+
+void setup(){
+  Serial.begin(9600);
+  Serial.println("Serial fontionne");
+  delay(500);
+
+  blue.begin(9600);
+  
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+  pinMode(A4, INPUT);
+  
+  
+
+  servo1.attach(2);
+  servo2.attach(3);
+  servo3.attach(4);
+  servo4.attach(5);
+  servo5.attach(6);
+
+  servo1.write(180);
+  servo2.write(180);
+  servo3.write(180);
+  servo4.write(180);
+  servo5.write(180);
+}
+
+
+
+void loop(){
+  
+  int total = e200*200 + e100*100 + e50*50 + e20*20 + e10*10;
+  
+  val100 = analogRead(A1);
+  val50 = analogRead(A2);
+  val20 = analogRead(A3);
+  val10 = analogRead(A4);
+  val200 = analogRead(A0);
+  
+  if (val200<=150){
+    delay(1000);
+    e200++;
+    Serial.println("pièce de 2e détéctée");
+  }
+  if (val100==0){
+    delay(100);
+    e100++;
+    Serial.println("pièce de 1e détéctée");
+  }
+  
+  if (val50==0){
+    delay(100);
+    e50++;
+    Serial.println("pièce de 50c détéctée");
+  }
+  
+  if (val20==0){
+    delay(100);
+    e20++;
+    Serial.println("pièce de 20c détéctée");
+  }
+  
+  if (val10==0){
+    delay(100);
+    e10++;
+    Serial.println("pièce de 10c détéctée");
+  }
+
+ 
+  while(blue.available()){
+    data=blue.read();
+    Serial.print("commande reçue : ");
+    Serial.println(data); 
+    
+    if (data=='d'){
+      preD+=10;
+    }
+    if (data=='v'){
+      preD+=20;
+    }
+    if (data=='c'){
+      preD+=50;
+    }
+    if (data=='u'){
+      preD+=100;
+    }
+    if (data=='b'){
+      preD+=200;
+    }
+    if (data=='V'){
+      boucle = 1;
+      D = preD;
+    }
+  }
+
+  while(Serial.available()){
+    blue.write(char(Serial.read()));
+  }
+
+
+  if (D!=0){
+
+    Serial.print("il reste : ");
+    Serial.print(e200);
+    Serial.println(" piece(s) de 2e et ");
+    Serial.print(e100);
+    Serial.println(" piece(s) de 1e et ");
+    Serial.print(e50);
+    Serial.println(" piece(s) de 50c et ");
+    Serial.print(e20);
+    Serial.println(" piece(s) de 20c et ");
+    Serial.print(e10);
+    Serial.println(" piece(s) de 10c ");
+    Serial.println(" ");
+      
+    if((n200==true) or (n100==true) or (n50==true) or (n20==true) or (n10==true)){
+     
+      if (n200==true){
+      
+        if ((D - 200 >= 0) && (e200 - 1 >= 0)){
+          D -= 200;
+          e200--;
+
+          Serial.println("Rend pièce de 2euros");
+          Serial.print("il reste donc : ");
+          Serial.print(D);
+          Serial.println("centimes à rendre");
+          
+          servo1.write(0); //on rend une piece de 2
+          delay(800);
+          servo1.write(180);
+          delay(800);
+          }
+        
+        else{n200 = false;}
+      }
+
+      else{
+      
+        if (n100==true){
+        
+          if ((D - 100 >= 0) && (e100 - 1 >= 0)){
+            D -= 100;
+            e100--;
+
+            Serial.println("Rend pièce de 1euro");
+            Serial.print("il reste donc : ");
+            Serial.print(D);
+            Serial.println("centimes à rendre");
+          
+            servo2.write(0);
+            delay(800);
+            servo2.write(180);
+            delay(800);
+          
+            }
+          else{n100 = false;}
+        }
+        
+        else{
+
+          if (n50==true){ 
+          
+            if ((D - 50 >= 0) && (e50 - 1 >= 0)){
+              D -= 50;
+              e50--;
+
+              Serial.println("Rend pièce de 50 centimes");
+              Serial.print("il reste donc : ");
+              Serial.print(D);
+              Serial.println("centimes à rendre");
+
+              servo3.write(0);
+              delay(800);
+              servo3.write(180);
+              delay(800);
+              }
+            else{n50 = false;}
+        }
+
+          else{
+          
+            if (n20==true){
+            
+              if ((D - 20 >= 0) && (e20 - 1 >= 0)){
+                D -= 20;
+                e20--;
+
+                Serial.println("Rend pièce de 20 centimes");
+                Serial.print("il reste donc : ");
+                Serial.print(D);
+                Serial.println("centimes à rendre");
+                
+                servo4.write(0);
+                delay(800);
+                servo4.write(180);
+                delay(800);
+        
+              }
+              else{n20 = false;}
+            }
+            
+            else{
+
+              if (n10==true){
+
+                if ((D-10 >= 0) && (e10 - 1 >= 0)){
+                  D -= 10;
+                  e10--;
+
+                  Serial.println("Rend pièce de 10 centimes");
+                  Serial.print("il reste donc : ");
+                  Serial.print(D);
+                  Serial.println("centimes à rendre");
+                  
+                  servo5.write(0);
+                  delay(800);
+                  servo5.write(180);
+                  delay(800);
+                
+                }
+                else{n10=false;}
+             }
+          }
+        }
+      }
+    } 
+  }
+  
+
+    if ((D!=0) && ((n200==false) && (n100==false) && (n50==false) && (n20==false) && (n10==false))){ //la machine n'a pas pu rendre le montant exact
+        if (e10 > 0){ 
+          e10--;
+          servo5.write(0);
+          delay(800);
+          servo5.write(180);
+          delay(800);
+        
+          R = -D + 10;}
+
+          else{
+            if (e20 > 0){
+              e20--;
+              servo4.write(0);
+              delay(800);
+              servo4.write(180);
+              delay(800);
+            
+              R = -D +20;}
+
+            else{
+              if (e50 > 0){
+               e50--;
+                servo3.write(0);
+                delay(800);
+                servo3.write(180);
+                delay(800);
+              
+                R = -D +50;}
+
+              else{
+                if (e100 > 0){
+                  e100--;
+                  servo2.write(0);
+                  delay(800);
+                  servo2.write(180);
+                  delay(800);
+                
+                  R = -D + 100;}
+
+                else{
+                  if (e200 > 0){
+                    e200--;
+                    servo1.write(0);
+                    delay(800);
+                    servo1.write(180);
+                    delay(800);
+                  
+                    R = -D+200;} 
+
+                  else{
+                    M = D;//la machine n'a pas pu rendre ce que l'utilisateur voulait il faut afficher le manque sur l'écran 
+                }
+              }
+            }
+          }
+        }
+    }
+  }
+
+  if (D==0){
+    if ((preD !=0) && (boucle == 1)){
+      Serial.print("Vos ");
+      Serial.print(preD); 
+      Serial.println(" centimes ont bien ete rendus");
+      boucle = 0;
+      preD = 0;   
+      delay(25000);   
+    }
+
+    Serial.print("vous avez : ");
+    Serial.print(total);
+    Serial.println(" centimes");
+    n200=true;
+    n100=true;
+    n50=true;
+    n20=true;
+    n10=true;
+  }
+
+  if (R!=0){        //on a trop rendu
+    Serial.print("Vos ");
+    Serial.print(preD); 
+    Serial.print(" centimes ont bien ete rendus mais il y a ");
+    Serial.print(R);
+    Serial.println(" centimes en plus");
+    R = 0;
+    D = 0;
+    preD = 0;
+    boucle = 0;
+    
+    n200=true;
+    n100=true;
+    n50=true;
+    n20=true;
+    n10=true;
+    delay(25000);
+    }
+    
+  if (M!=0){ //on a pas rendu assez
+    
+    Serial.print("Vos ");
+    Serial.print(preD); 
+    Serial.print(" centimes n'ont pas bien ete rendus, il y a ");
+    Serial.print(M);
+    Serial.println(" centimes en moins");
+       
+    M = 0;
+    D = 0;
+    preD = 0;
+    boucle = 0;
+    
+    n200=true;
+    n100=true;
+    n50=true;
+    n20=true;
+    n10=true;
+    delay(25000);
+    } 
+}
